@@ -1112,6 +1112,8 @@ async function buildDashboardData(forceRefresh = false, forceNewVersion = false)
   const token = getHAToken();
   await Promise.all([resolveLocation(token), detectSolarEntities(token)]);
   const todayStr = getTodayDateStr();
+  const currentLocalHour = getLocalDateHour(now).hour;
+  const isTodayComplete = currentLocalHour >= 17;
 
   // 1. Fetch Home Assistant hourly stats from Aug 20, 2026 to now
   const [haStats, liveStates] = await Promise.all([
@@ -1423,8 +1425,6 @@ async function buildDashboardData(forceRefresh = false, forceNewVersion = false)
 
   // 4. Reference pool of complete post-tree-removal days
   // If it is after 5 PM local time (sun has set), today's solar production is complete and included in the historical reference pool
-  const currentLocalHour = getLocalDateHour(now).hour;
-  const isTodayComplete = currentLocalHour >= 17;
   const postTreePool = historicalDays.filter(
     (d) =>
       d.date >= '2026-09-23' &&
