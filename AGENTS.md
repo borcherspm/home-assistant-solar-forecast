@@ -164,20 +164,73 @@ A local web application and background snapshot service is installed in `dashboa
   - `GET http://localhost:3030/api/solar-dashboard?snapshot=1`: Forces a new immutable version snapshot for all upcoming forecast days.
 
 ### Persistent Background Service (`launchd`)
-- **Plist Location:** `~/Library/LaunchAgents/com.homeassistant.solar-dashboard.plist`
-- **Service Label:** `com.homeassistant.solar-dashboard` (`RunAtLoad: true`, `KeepAlive: true`, automatic 6-hour background snapshot timer).
+- **Plist Location:** `~/Library/LaunchAgents/com.13iowa.solar-dashboard.plist`
+- **Service Label:** `com.13iowa.solar-dashboard` (`RunAtLoad: true`, `KeepAlive: true`, automatic 6-hour background snapshot timer).
 - **Logs:** `logs/dashboard.log` and `logs/dashboard.error.log`
 - **Management Commands:**
-  - Check status: `launchctl list | grep solar-dashboard`
-  - Restart service: `launchctl kickstart -k gui/$(id -u)/com.homeassistant.solar-dashboard`
-  - Stop service: `launchctl unload ~/Library/LaunchAgents/com.homeassistant.solar-dashboard.plist`
-  - Start service: `launchctl load ~/Library/LaunchAgents/com.homeassistant.solar-dashboard.plist`
+  - Check status: `launchctl list | grep com.13iowa.solar-dashboard`
+  - Restart service: `launchctl kickstart -k gui/$(id -u)/com.13iowa.solar-dashboard`
+  - Stop service: `launchctl unload ~/Library/LaunchAgents/com.13iowa.solar-dashboard.plist`
+  - Start service: `launchctl load ~/Library/LaunchAgents/com.13iowa.solar-dashboard.plist`
 
-### Native Home Assistant Add-on (`addons/solar_forecast/`)
-A standalone Home Assistant Docker Add-on is ready to run directly on the Home Assistant server 24/7 with zero dependence on the MacBook:
+### Native Home Assistant Add-on (`addons/13iowa_solar_forecast/`)
+A standalone Home Assistant Docker Add-on runs directly on the Home Assistant server 24/7 with zero dependence on the MacBook:
 - **GitHub Repository:** [https://github.com/borcherspm/home-assistant-solar-forecast](https://github.com/borcherspm/home-assistant-solar-forecast)
-- **Directory:** `addons/solar_forecast/`
-- **Files:** `config.yaml`, `Dockerfile` (`node:22-alpine`), `run.sh`, `server.js`, and `public/`.
+- **Directory:** `addons/13iowa_solar_forecast/`
+- **Installed Slug:** `cad53091_solar_forecast`
+- **Update Entity:** `update.13_iowa_solar_forecast_update`
+- **Files:** `config.yaml`, `Dockerfile` (`node:22-alpine` multi-stage), `run.sh`, `server.js`, and `public/`.
 - **Ingress Enabled:** Adds a native **☀️ Solar Forecast** tab to the Home Assistant left sidebar (and HA mobile companion apps) via `ingress: true`.
 - **Automatic HA Auth & Backup:** Uses internal `SUPERVISOR_TOKEN` at `http://supervisor/core` and stores persistent SQLite database in `/data/solar_forecasts.db` (included in automatic HA backups).
 - **Repository Metadata:** Root `repository.yaml` enables adding this git repository directly to Home Assistant under **Settings → Add-ons → Add-on Store → Repositories**.
+
+#### How to Check for Updates and Rebuild/Restart via API
+
+##### 1. Refresh Add-on Store (Fetch New GitHub Commits)
+Via WebSocket API:
+```json
+{
+  "id": 1,
+  "type": "supervisor/api",
+  "endpoint": "/store/reload",
+  "method": "post"
+}
+```
+
+##### 2. Install Add-on Update (REST Service Call)
+```bash
+POST http://homeassistant.local:8123/api/services/update/install
+Authorization: Bearer <HOME_ASSISTANT_TOKEN>
+Content-Type: application/json
+
+{"entity_id": "update.13_iowa_solar_forecast_update"}
+```
+
+##### 3. Rebuild or Restart Add-on via WebSocket Supervisor API
+```json
+{
+  "id": 2,
+  "type": "supervisor/api",
+  "endpoint": "/addons/cad53091_solar_forecast/rebuild",
+  "method": "post"
+}
+```
+Or restart:
+```json
+{
+  "id": 3,
+  "type": "supervisor/api",
+  "endpoint": "/addons/cad53091_solar_forecast/restart",
+  "method": "post"
+}
+```
+
+##### 4. Check Add-on Status & Version via WebSocket
+```json
+{
+  "id": 4,
+  "type": "supervisor/api",
+  "endpoint": "/addons/cad53091_solar_forecast/info",
+  "method": "get"
+}
+```
