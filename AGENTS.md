@@ -163,18 +163,18 @@ A local web application and background snapshot service is installed in `dashboa
   - `GET http://localhost:3030/api/solar-dashboard?refresh=1`: Forces live refresh from Home Assistant & Open-Meteo (inserting new forecast versions if weather shifted).
   - `GET http://localhost:3030/api/solar-dashboard?snapshot=1`: Forces a new immutable version snapshot for all upcoming forecast days.
 
-### Persistent Background Service (`launchd`)
-- **Plist Location:** `~/Library/LaunchAgents/com.13iowa.solar-dashboard.plist`
-- **Service Label:** `com.13iowa.solar-dashboard` (`RunAtLoad: true`, `KeepAlive: true`, automatic 6-hour background snapshot timer).
-- **Logs:** `logs/dashboard.log` and `logs/dashboard.error.log`
-- **Management Commands:**
-  - Check status: `launchctl list | grep com.13iowa.solar-dashboard`
-  - Restart service: `launchctl kickstart -k gui/$(id -u)/com.13iowa.solar-dashboard`
-  - Stop service: `launchctl unload ~/Library/LaunchAgents/com.13iowa.solar-dashboard.plist`
-  - Start service: `launchctl load ~/Library/LaunchAgents/com.13iowa.solar-dashboard.plist`
+### Running Locally on MacBook Air for Testing (On-Demand)
+The local macOS background service has been uninstalled so it does not run in the background. To test changes locally on your MacBook Air anytime:
 
-### Native Home Assistant Add-on (`addons/13iowa_solar_forecast/`)
-A standalone Home Assistant Docker Add-on runs directly on the Home Assistant server 24/7 with zero dependence on the MacBook:
+```bash
+node dashboard/server.js
+```
+- Opens local test dashboard at `http://localhost:3030`.
+- Strictly read-only (will not push duplicate sensors into Home Assistant unless started with `PUBLISH_TO_HA=true`).
+- Stop with `Ctrl+C` when finished testing.
+
+### Production Home Assistant Add-on (`addons/solar_forecast/`)
+The production version runs 24/7 directly on the Home Assistant server with zero dependence on the MacBook:
 - **GitHub Repository:** [https://github.com/borcherspm/home-assistant-solar-forecast](https://github.com/borcherspm/home-assistant-solar-forecast)
 - **Directory:** `addons/solar_forecast/`
 - **Installed Slug:** `cad53091_solar_forecast`
