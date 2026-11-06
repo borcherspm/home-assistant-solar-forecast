@@ -21,20 +21,6 @@ echo "[Solar Forecast Add-on] Node version: $(node -v || echo 'not available')"
 if [ -d "/data" ]; then
   export DATA_DIR="/data"
   echo "[Solar Forecast Add-on] Using persistent SQLite directory: /data"
-  
-  COPY_SEED=0
-  if [ ! -f "/data/solar_forecasts.db" ]; then
-    COPY_SEED=1
-  elif [ $(wc -c < "/data/solar_forecasts.db") -lt 50000 ]; then
-    echo "[Solar Forecast Add-on] Existing /data/solar_forecasts.db is stub (<50KB). Replacing with baseline database."
-    COPY_SEED=1
-  fi
-
-  if [ "$COPY_SEED" -eq 1 ] && [ -f "/app/data/solar_forecasts.db" ]; then
-    echo "[Solar Forecast Add-on] Copying complete baseline database into /data/solar_forecasts.db..."
-    cp -f /app/data/solar_forecasts.db /data/solar_forecasts.db
-    rm -f /data/solar_forecasts.db-wal /data/solar_forecasts.db-shm
-  fi
 fi
 
 exec node server.js

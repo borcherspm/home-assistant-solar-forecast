@@ -16,7 +16,6 @@ COPY --from=node_base /usr/local/bin/node /usr/local/bin/node
 # Copy application files
 COPY server.js ./
 COPY public ./public/
-COPY data/solar_forecasts.db ./data/solar_forecasts.db
 COPY run.sh ./
 
 RUN chmod +x run.sh && mkdir -p /app/data /data
