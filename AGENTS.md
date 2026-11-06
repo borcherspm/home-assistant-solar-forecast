@@ -176,61 +176,78 @@ A local web application and background snapshot service is installed in `dashboa
 ### Native Home Assistant Add-on (`addons/13iowa_solar_forecast/`)
 A standalone Home Assistant Docker Add-on runs directly on the Home Assistant server 24/7 with zero dependence on the MacBook:
 - **GitHub Repository:** [https://github.com/borcherspm/home-assistant-solar-forecast](https://github.com/borcherspm/home-assistant-solar-forecast)
-- **Directory:** `addons/13iowa_solar_forecast/`
+- **Directory:** `addons/solar_forecast/`
 - **Installed Slug:** `cad53091_solar_forecast`
-- **Update Entity:** `update.13_iowa_solar_forecast_update`
+- **Update Entity:** `update.solar_forecast_intelligence_update`
 - **Files:** `config.yaml`, `Dockerfile` (`node:22-alpine` multi-stage), `run.sh`, `server.js`, and `public/`.
 - **Ingress Enabled:** Adds a native **☀️ Solar Forecast** tab to the Home Assistant left sidebar (and HA mobile companion apps) via `ingress: true`.
 - **Automatic HA Auth & Backup:** Uses internal `SUPERVISOR_TOKEN` at `http://supervisor/core` and stores persistent SQLite database in `/data/solar_forecasts.db` (included in automatic HA backups).
 - **Repository Metadata:** Root `repository.yaml` enables adding this git repository directly to Home Assistant under **Settings → Add-ons → Add-on Store → Repositories**.
 
-#### How to Check for Updates and Rebuild/Restart via API
+#### How to Check for Updates and Update/Rebuild via API
 
-##### 1. Refresh Add-on Store (Fetch New GitHub Commits)
-Via WebSocket API:
-```json
-{
-  "id": 1,
-  "type": "supervisor/api",
-  "endpoint": "/store/reload",
-  "method": "post"
-}
-```
-
-##### 2. Install Add-on Update (REST Service Call)
+##### Method A: One-Liner Node.js Script (Direct & Complete)
+Run this command in terminal to reload the store, update the add-on to the latest GitHub version, and check the status:
 ```bash
-POST http://homeassistant.local:8123/api/services/update/install
-Authorization: Bearer <HOME_ASSISTANT_TOKEN>
-Content-Type: application/json
-
-{"entity_id": "update.13_iowa_solar_forecast_update"}
+node -e '
+const fs = require("fs");
+const env = fs.readFileSync(".env", "utf8");
+const token = env.split("\n").find(l => l.startsWith("HOME_ASSISTANT_TOKEN="))?.split("=")[1]?.trim()?.replace(/^["\x27]|["\x27]$/g, "");
+const ws = new WebSocket("ws://homeassistant.local:8123/api/websocket");
+ws.onmessage = (e) => {
+  const msg = JSON.parse(e.data);
+  if (msg.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: token }));
+  else if (msg.type === "auth_ok") {
+    // 1. Reload store to fetch latest git commits from GitHub
+    ws.send(JSON.stringify({ id: 1, type: "supervisor/api", endpoint: "/store/reload", method: "post" }));
+  } else if (msg.id === 1) {
+    // 2. Trigger add-on update
+    console.log("Store reloaded. Updating add-on...");
+    ws.send(JSON.stringify({ id: 2, type: "supervisor/api", endpoint: "/addons/cad53091_solar_forecast/update", method: "post" }));
+  } else if (msg.id === 2) {
+    // 3. Check status
+    console.log("Update finished. Checking status...");
+    ws.send(JSON.stringify({ id: 3, type: "supervisor/api", endpoint: "/addons/cad53091_solar_forecast/info", method: "get" }));
+  } else if (msg.id === 3) {
+    console.log("Status:", { state: msg.result?.state, version: msg.result?.version, latest: msg.result?.version_latest });
+    ws.close();
+  }
+};
+'
 ```
 
-##### 3. Rebuild or Restart Add-on via WebSocket Supervisor API
-```json
-{
-  "id": 2,
-  "type": "supervisor/api",
-  "endpoint": "/addons/cad53091_solar_forecast/rebuild",
-  "method": "post"
-}
-```
-Or restart:
-```json
-{
-  "id": 3,
-  "type": "supervisor/api",
-  "endpoint": "/addons/cad53091_solar_forecast/restart",
-  "method": "post"
-}
-```
+##### Method B: Step-by-Step API Endpoints
 
-##### 4. Check Add-on Status & Version via WebSocket
-```json
-{
-  "id": 4,
-  "type": "supervisor/api",
-  "endpoint": "/addons/cad53091_solar_forecast/info",
-  "method": "get"
-}
-```
+1. **Reload Store (Fetch New GitHub Commits):**
+   ```json
+   {
+     "id": 1,
+     "type": "supervisor/api",
+     "endpoint": "/store/reload",
+     "method": "post"
+   }
+   ```
+
+2. **Trigger Add-on Update (When New Version Available):**
+   ```json
+   {
+     "id": 2,
+     "type": "supervisor/api",
+     "endpoint": "/addons/cad53091_solar_forecast/update",
+     "method": "post"
+   }
+   ```
+   *Note: If versions match and you want to force recompile from current files, use `/rebuild` instead of `/update`.*
+
+3. **Install Update via REST Service Call:**
+   ```bash
+   POST http://homeassistant.local:8123/api/services/update/install
+   Authorization: Bearer <HOME_ASSISTANT_TOKEN>
+   Content-Type: application/json
+
+   {"entity_id": "update.solar_forecast_intelligence_update"}
+   ```
+
+4. **Restart or Check Status:**
+   - Restart: `POST /addons/cad53091_solar_forecast/restart`
+   - Info/Status: `GET /addons/cad53091_solar_forecast/info`
