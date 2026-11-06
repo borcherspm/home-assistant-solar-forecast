@@ -1,0 +1,27 @@
+{
+  "name": "home-assistant-solar-forecast",
+  "version": "1.0.5",
+  "description": "High-resolution solar forecasting engine, live Home Assistant sensor publisher, and tree removal counterfactuals",
+  "main": "dashboard/server.js",
+  "scripts": {
+    "start": "node dashboard/server.js",
+    "dev": "node dashboard/server.js",
+    "sync": "node scripts/sync-addon.js",
+    "ha:status": "node scripts/ha-status.js",
+    "ha:update": "node scripts/ha-update.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/borcherspm/home-assistant-solar-forecast.git"
+  },
+  "keywords": [
+    "home-assistant",
+    "solar",
+    "powerwall",
+    "open-meteo",
+    "forecast",
+    "sqlite"
+  ],
+  "author": "Paul Borchers",
+  "license": "MIT"
+}
