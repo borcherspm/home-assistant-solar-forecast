@@ -239,6 +239,235 @@
       width: 100%;
     }
 
+    .tab-label-short {
+      display: none;
+    }
+    .chart-legend-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .sim-outputs {
+      margin-left: auto;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    /* Tablet & Mobile Responsiveness */
+    @media (max-width: 900px) {
+      .header-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .brand {
+        justify-content: flex-start;
+      }
+      .live-pills {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        width: 100%;
+      }
+      .btn-refresh {
+        grid-column: span 2;
+        text-align: center;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 12px 14px;
+      }
+      .brand-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+        border-radius: 9px;
+      }
+      .brand h1 {
+        font-size: 16px;
+      }
+      .brand p {
+        font-size: 11px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .container {
+        padding: 0 12px;
+        margin-top: 14px;
+      }
+      .tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px;
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        scrollbar-width: none;
+      }
+      .tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .tab-btn {
+        flex-shrink: 0;
+        padding: 8px 13px;
+        font-size: 12.5px;
+        white-space: nowrap;
+        border-radius: 8px;
+      }
+      .tab-label-full {
+        display: none;
+      }
+      .tab-label-short {
+        display: inline;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .kpi-card {
+        padding: 12px 10px;
+        border-radius: 10px;
+      }
+      .kpi-card .label {
+        font-size: 10px;
+        margin-bottom: 2px;
+      }
+      .kpi-card .value {
+        font-size: 19px;
+        margin-bottom: 2px;
+      }
+      .kpi-card .sub {
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .card {
+        padding: 14px 12px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+      }
+      .card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .card-title {
+        font-size: 15px;
+      }
+      .card-subtitle {
+        font-size: 11.5px;
+        line-height: 1.4;
+      }
+
+      .chart-wrap {
+        height: 250px;
+      }
+      .chart-wrap-sm {
+        height: 210px;
+      }
+
+      /* Horizontal touch-swipe carousel for 16-day forecast cards */
+      .forecast-strip {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 8px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+      }
+      .f-day-card {
+        min-width: 135px;
+        max-width: 145px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        padding: 10px;
+      }
+      .f-day-card .f-kwh {
+        font-size: 18px;
+      }
+
+      .filter-group {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        gap: 6px;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .filter-group::-webkit-scrollbar {
+        display: none;
+      }
+      .filter-btn {
+        flex-shrink: 0;
+        padding: 5px 10px;
+        font-size: 11.5px;
+      }
+
+      .sim-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px;
+      }
+      .sim-controls > div {
+        width: 100%;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      select.input-select {
+        width: 100%;
+      }
+      .sim-outputs {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px solid var(--border);
+        padding-top: 10px;
+      }
+
+      .chart-legend-row {
+        font-size: 10.5px;
+        gap: 6px 10px;
+      }
+
+      table {
+        font-size: 11.5px;
+      }
+      th, td {
+        padding: 7px 8px;
+        white-space: nowrap;
+      }
+      .table-wrap {
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      .insight-banner {
+        padding: 12px 14px;
+        font-size: 12.5px;
+        margin-bottom: 14px;
+      }
+      .insight-banner h3 {
+        font-size: 13.5px;
+      }
+    }
+
     /* Forecast strip */
     .forecast-strip {
       display: grid;
@@ -412,16 +641,24 @@
   <div class="container">
     <div class="tabs">
       <button class="tab-btn active" data-tab="forecast" onclick="switchTab('forecast', this, true)">
-        🔮 Future Solar Forecast (Similar Sunlight Days)
+        <span class="tab-icon">🔮</span>
+        <span class="tab-label-full">Future Solar Forecast (Similar Sunlight Days)</span>
+        <span class="tab-label-short">Forecast</span>
       </button>
       <button class="tab-btn" data-tab="tree" onclick="switchTab('tree', this, true)">
-        🌲 Sept & Aug 21 Tree Removal Counterfactual ("What If?")
+        <span class="tab-icon">🌲</span>
+        <span class="tab-label-full">Sept & Aug 21 Tree Removal Counterfactual ("What If?")</span>
+        <span class="tab-label-short">Tree Impact</span>
       </button>
       <button class="tab-btn" data-tab="correlation" onclick="switchTab('correlation', this, true)">
-        📊 Sunlight Hours vs. kWh Explorer & Simulator
+        <span class="tab-icon">📊</span>
+        <span class="tab-label-full">Sunlight Hours vs. kWh Explorer & Simulator</span>
+        <span class="tab-label-short">Simulator</span>
       </button>
       <button class="tab-btn" data-tab="tracking" onclick="switchTab('tracking', this, true)">
-        🎯 Saved Forecasts vs. Actual Tracker
+        <span class="tab-icon">🎯</span>
+        <span class="tab-label-full">Saved Forecasts vs. Actual Tracker</span>
+        <span class="tab-label-short">Tracker</span>
       </button>
     </div>
 
@@ -458,10 +695,10 @@
               Click any upcoming day card below to inspect the exact past post-tree days (Sept 23+) with similar hours of sunlight and see how the projection is calculated.
             </div>
           </div>
-          <div style="display:flex; gap:10px; align-items:center; font-size:12px; color:var(--text-muted);">
-            <span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:2px;margin-right:4px;"></span>Seasonally-Adjusted Forecast (kWh)</span>
-            <span><span style="display:inline-block;width:10px;height:10px;background:#94a3b8;border-radius:2px;margin-right:4px;"></span>Raw Similar Past Days Avg (kWh)</span>
-            <span><span style="display:inline-block;width:10px;height:10px;background:#38bdf8;border-radius:50%;margin-right:4px;"></span>Projected Sunlight (hrs)</span>
+          <div class="chart-legend-row">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:2px;margin-right:4px;"></span>Forecast (kWh)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#94a3b8;border-radius:2px;margin-right:4px;"></span>Raw Match (kWh)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#38bdf8;border-radius:50%;margin-right:4px;"></span>Sunlight (hrs)</span>
           </div>
         </div>
         <div class="chart-wrap">
@@ -682,7 +919,7 @@
               <option value="43.0">Late August (Unshaded • Max ~43.0 kWh)</option>
             </select>
           </div>
-          <div style="margin-left:auto;display:flex;gap:24px;align-items:center;">
+          <div class="sim-outputs">
             <div>
               <div style="font-size:11.5px;color:var(--text-muted);">Seasonally-Adjusted Output</div>
               <div id="sim-out-seasonal" style="font-size:26px;font-weight:800;color:var(--amber-light);">-- kWh</div>
