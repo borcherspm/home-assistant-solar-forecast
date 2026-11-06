@@ -1,0 +1,33 @@
+# Secrets and Local Environment
+.env
+*.env
+*.token
+
+# Logs
+logs/
+*.log
+
+# Databases and Runtime Data
+dashboard/data/*.db*
+addons/solar_forecast/data/*.db*
+addons/*/data/*.db*
+data/*.db*
+*.db-wal
+*.db-shm
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Pi Agent and Editor
+.pi/
+.vscode/
+.idea/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

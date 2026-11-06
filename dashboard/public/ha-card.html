@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>solar generated (12h) — Live & Future Forecast</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #1c1c1c;
+      color: #e1e1e1;
+      font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 18px 20px;
+      overflow-x: hidden;
+    }
+    .ha-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .ha-title {
+      font-size: 22px;
+      font-weight: 400;
+      color: #e1e1e1;
+    }
+    .ha-sub {
+      font-size: 12px;
+      color: #9b9b9b;
+    }
+    .chart-box {
+      position: relative;
+      height: 260px;
+      width: 100%;
+    }
+    .legend-list {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+      justify-content: center;
+      font-size: 13.5px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+    }
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #111;
+      font-weight: 900;
+    }
+    .val {
+      color: #9b9b9b;
+      margin-left: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ha-header">
+    <div>
+      <div class="ha-title">solar generated (full day + future forecast)</div>
+      <div class="ha-sub" id="ha-subtitle">7:00 AM – 6:00 PM (15-min resolution • Future curve drawn ahead of time)</div>
+    </div>
+  </div>
+  <div class="chart-box">
+    <canvas id="haChart"></canvas>
+  </div>
+  <div class="legend-list" id="ha-legend"></div>
+
+  <script>
+    let chart = null;
+    function getApiUrl(subpath) {
+      const match = window.location.pathname.match(/^(\/api\/hassio_ingress\/[^/]+)/);
+      return (match ? match[1] : '') + subpath;
+    }
+
+    async function load() {
+      const res = await fetch(getApiUrl('/api/solar-dashboard'));
+      const data = await res.json();
+      const ic = data.intraday_cumulative;
+      if (!ic) return;
+
+      const series = [
+        {
+          label: 'Powerwall #1 Solar generated',
+          val: `${ic.today_actual_kwh.toFixed(2)} kWh`,
+          color: '#3b82f6',
+          data: ic.today_actual_15m,
+          borderWidth: 2.5,
+          dash: []
+        },
+        {
+          label: 'Solar Expected Today (Weather Forecast)',
+          val: `${ic.today_forecast_kwh.toFixed(2)} kWh`,
+          color: '#a855f7',
+          data: ic.today_forecast_15m,
+          borderWidth: 2.8,
+          dash: []
+        },
+        {
+          label: `Solar Expected Tomorrow (${ic.tomorrow_date.slice(5)})`,
+          val: `${ic.tomorrow_forecast_kwh.toFixed(2)} kWh`,
+          color: '#38bdf8',
+          data: ic.tomorrow_forecast_15m,
+          borderWidth: 2,
+          dash: [5, 4]
+        },
+        {
+          label: 'Solar Yesterday',
+          val: `${ic.yesterday_kwh.toFixed(2)} kWh`,
+          color: '#f59e0b',
+          data: ic.yesterday_15m,
+          borderWidth: 2,
+          dash: []
+        },
+        {
+          label: 'Solar Expected Today (7D Avg)',
+          val: `${ic.avg_7d_kwh.toFixed(2)} kWh`,
+          color: '#ef4444',
+          data: ic.avg_7d_15m,
+          borderWidth: 1.8,
+          dash: []
+        }
+      ];
+
+      const ctx = document.getElementById('haChart').getContext('2d');
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ic.labels_15m.map(t => {
+            const [h, m] = t.split(':').map(Number);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const hr12 = h % 12 || 12;
+            return `${hr12}:${String(m).padStart(2, '0')} ${ampm}`;
+          }),
+          datasets: series.map(s => ({
+            label: `${s.label} (${s.val})`,
+            data: s.data,
+            borderColor: s.color,
+            backgroundColor: s.color,
+            borderWidth: s.borderWidth,
+            borderDash: s.dash,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.25,
+            spanGaps: false
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(20, 20, 20, 0.95)',
+              titleColor: '#fff',
+              bodyColor: '#e1e1e1',
+              borderColor: '#333',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: '#9b9b9b',
+                maxTicksLimit: 8
+              },
+              grid: { color: 'rgba(255, 255, 255, 0.08)' }
+            },
+            y: {
+              title: { display: true, text: 'kWh', color: '#9b9b9b', align: 'end' },
+              ticks: { color: '#9b9b9b' },
+              grid: { color: 'rgba(255, 255, 255, 0.08)' },
+              min: 0
+            }
+          }
+        }
+      });
+
+      document.getElementById('ha-legend').innerHTML = series.map((s, idx) => `
+        <div class="legend-item" onclick="toggleDataset(${idx})">
+          <span class="dot" style="background:${s.color}">✓</span>
+          <span>${s.label}</span>
+          <span class="val">${s.val}</span>
+        </div>
+      `).join('');
+    }
+
+    function toggleDataset(idx) {
+      if (!chart) return;
+      const meta = chart.getDatasetMeta(idx);
+      meta.hidden = meta.hidden === null ? !chart.data.datasets[idx].hidden : null;
+      chart.update();
+    }
+
+    load();
+    setInterval(load, 60 * 1000);
+  </script>
+</body>
+</html>
