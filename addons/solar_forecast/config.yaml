@@ -1,7 +1,7 @@
 name: "Solar Forecast & Intelligence"
 slug: "solar_forecast"
 description: "High-resolution solar forecasting (15m granularity), live Home Assistant sensor publisher, and tree counterfactual analysis using Open-Meteo & HA LTS data"
-version: "1.0.5"
+version: "1.0.6"
 url: "https://github.com/borcherspm/home-assistant-solar-forecast"
 arch:
   - aarch64

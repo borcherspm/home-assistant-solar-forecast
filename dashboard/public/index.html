@@ -1195,8 +1195,10 @@
 
       const bestDay = [...fDays].sort((a, b) => b.projected_kwh - a.projected_kwh)[0];
 
+      const actKwh = today.actual_so_far_kwh || 0;
+      const actStr = actKwh > 0 && actKwh < 1.0 ? actKwh.toFixed(2) : actKwh.toFixed(1);
       document.getElementById('kpi-today-kwh').textContent =
-        `${(today.actual_so_far_kwh || 0).toFixed(1)} kWh Actual`;
+        `${actStr} kWh Actual`;
       document.getElementById('kpi-today-sub').innerHTML =
         `Model Forecast: <strong>${today.projected_kwh.toFixed(1)} kWh</strong> • ${today.weather_icon} <strong>${today.sunshine_hours}h</strong> sun (${today.sunshine_pct}% of ${today.daylight_hours}h)`;
 
@@ -1306,10 +1308,13 @@
       // Render day cards strip
       const strip = document.getElementById('forecast-strip');
       strip.innerHTML = fDays.map((d, idx) => {
-        const mainKwh = (d.is_today && d.actual_so_far_kwh > 0) ? d.actual_so_far_kwh : d.projected_kwh;
-        const kwhLabel = (d.is_today && d.actual_so_far_kwh > 0) ? 'kWh Actual' : 'kWh Est';
-        const subLine = (d.is_today && d.actual_so_far_kwh > 0)
+        const isCompleteToday = d.is_today && d.is_complete;
+        const mainKwh = isCompleteToday && d.actual_so_far_kwh > 0 ? d.actual_so_far_kwh : d.projected_kwh;
+        const kwhLabel = isCompleteToday && d.actual_so_far_kwh > 0 ? 'kWh Actual' : 'kWh Est';
+        const subLine = isCompleteToday && d.actual_so_far_kwh > 0
           ? `Forecast: <strong>${d.projected_kwh.toFixed(1)} kWh</strong>`
+          : d.is_today && (d.actual_so_far_kwh > 0)
+          ? `So far: <strong>${d.actual_so_far_kwh < 1 ? d.actual_so_far_kwh.toFixed(2) : d.actual_so_far_kwh.toFixed(1)} kWh</strong> (Est: ${d.projected_kwh.toFixed(1)} kWh)`
           : `Past ~${d.sunshine_hours.toFixed(0)}h avg: <strong>${d.raw_similar_days_kwh} kWh</strong>`;
         const cloudDetail = d.cloud_high_pct >= 40 && d.cloud_low_pct <= 25
           ? `${d.effective_cloud_cover}% block (High cirrus)`

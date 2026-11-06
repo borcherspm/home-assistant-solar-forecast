@@ -1304,7 +1304,7 @@ async function buildDashboardData(forceRefresh = false, forceNewVersion = false)
 
   const cachedActuals = {};
   try {
-    const dbRows = db.prepare('SELECT * FROM daily_actuals').all();
+    const dbRows = db.prepare('SELECT * FROM daily_actuals WHERE is_complete = 1').all();
     for (const r of dbRows) {
       cachedActuals[r.date] = r;
     }
@@ -1323,7 +1323,24 @@ async function buildDashboardData(forceRefresh = false, forceNewVersion = false)
     let actualKwh = 0;
     let recordedHours = Array(24).fill(0);
 
-    if (ha && (ha.genSum > 0.5 || ha.powerSum > 0.5)) {
+    if (dt === todayStr) {
+      // Current day is in-progress: never read from cached daily_actuals in SQLite.
+      // Use live sensor generation for real-time accuracy.
+      const liveGen = parseFloat(liveStates[detectedEntities.energy]?.state);
+      // Guard against lingering previous-day totals right after midnight before sensor reset:
+      // In early morning hours (< 5 AM local time), solar generation for the day is strictly 0.
+      if (currentLocalHour >= 5 && !isNaN(liveGen) && liveGen >= 0) {
+        actualKwh = +liveGen.toFixed(2);
+      } else if (ha && ha.genSum > 0) {
+        actualKwh = +ha.genSum.toFixed(2);
+      } else {
+        actualKwh = 0;
+      }
+      if (ha && ha.genSum > actualKwh) {
+        actualKwh = +ha.genSum.toFixed(2);
+      }
+      recordedHours = ha ? ha.hours : Array(24).fill(0);
+    } else if (ha && (ha.genSum > 0.5 || ha.powerSum > 0.5)) {
       actualKwh = +(ha.genSum > 0.5 ? ha.genSum : ha.powerSum).toFixed(2);
       recordedHours = ha.hours;
     } else if (cached && cached.actual_kwh > 0) {
@@ -1332,11 +1349,6 @@ async function buildDashboardData(forceRefresh = false, forceNewVersion = false)
         recordedHours = JSON.parse(cached.hours_actual_json || '[]');
       } catch (_) {
         recordedHours = Array(24).fill(0);
-      }
-    } else if (dt === todayStr) {
-      const liveGen = liveStates[detectedEntities.energy]?.state;
-      if (liveGen != null && !isNaN(liveGen) && liveGen > 0) {
-        actualKwh = +liveGen.toFixed(2);
       }
     }
 
@@ -1665,6 +1677,7 @@ async function buildDashboardData(forceRefresh = false, forceNewVersion = false)
       const todayHist = historicalDays.find((d) => d.date === todayStr);
       f.actual_so_far_kwh = todayHist ? todayHist.actual_kwh : 0;
       f.hours_actual_today = todayHist ? todayHist.hours_actual : Array(24).fill(0);
+      f.is_complete = isTodayComplete;
     }
     forecastDays.push(f);
   }
